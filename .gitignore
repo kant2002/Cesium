@@ -13,3 +13,6 @@ artifacts/
 *.user
 
 
+/Cesium.Parser.Tests/test.host.24-09-22_14-15-14_27714_5.log
+/Cesium.Parser.Tests/test.log
+*.binlog

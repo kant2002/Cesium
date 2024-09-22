@@ -4,7 +4,7 @@ using Yoakke.SynKit.Lexer;
 
 namespace Cesium.Parser.Tests.LexerTests;
 
-public class PreprocessorLexerTests : VerifyTestBase
+public partial class PreprocessorLexerTests : VerifyTestBase
 {
     private static IEnumerable<IToken<CPreprocessorTokenType>> GetTokens(string source)
     {
@@ -16,7 +16,7 @@ public class PreprocessorLexerTests : VerifyTestBase
         }
     }
 
-    private static Task DoTest(string source)
+    private Task DoTest(string source)
     {
         var tokens = GetTokens(source).Select(t => $"{t.Kind}: \"{t.Text.ReplaceLineEndings(@"\n")}\"");
         return Verify(string.Join("\n", tokens), GetSettings());

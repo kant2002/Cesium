@@ -1,6 +1,8 @@
-﻿namespace Cesium.TestFramework;
+using VerifyMSTest;
 
-public abstract class VerifyTestBase
+namespace Cesium.TestFramework;
+
+public abstract class VerifyTestBase : VerifyBase
 {
     static VerifyTestBase()
     {

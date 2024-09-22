@@ -7,11 +7,11 @@ using Yoakke.SynKit.Lexer;
 
 namespace Cesium.Parser.Tests.PreprocessorTests;
 
-public class PreprocessorTests : VerifyTestBase
+public partial class PreprocessorTests : VerifyTestBase
 {
     private const string _mainMockedFilePath = @"c:\a\b\c.c";
 
-    private static async Task DoTest(
+    private async Task DoTest(
         [StringSyntax("cpp")] string source,
         Dictionary<string, string>? standardHeaders = null,
         Dictionary<string, IList<IToken<CPreprocessorTokenType>>>? defines = null)

@@ -4,7 +4,7 @@ using Yoakke.SynKit.Parser;
 
 namespace Cesium.Parser.Tests.PreprocessorTests;
 
-public class TransactionalLexerTests
+public partial class TransactionalLexerTests
 {
     [Fact]
     public void ReportsWarningsOnUnclosedTransactions()

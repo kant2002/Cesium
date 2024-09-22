@@ -2,9 +2,9 @@ using Cesium.TestFramework;
 
 namespace Cesium.Parser.Tests.LexerTests;
 
-public class LexerTests : LexerTestBase
+public partial class LexerTests : LexerTestBase
 {
-    private static Task DoLexerTest(string source)
+    private Task DoLexerTest(string source)
     {
         var tokens = GetTokens(source).Select(t => $"{t.Kind}: {t.Text}");
         return Verify(string.Join("\n", tokens), GetSettings());

@@ -3,9 +3,9 @@ using Yoakke.SynKit.C.Syntax;
 
 namespace Cesium.Parser.Tests.ParserTests;
 
-public class StatementParserTests : ParserTestBase
+public partial class StatementParserTests : ParserTestBase
 {
-    private static Task DoTest(string source)
+    private Task DoTest(string source)
     {
         var lexer = new CLexer(source);
         var parser = new CParser(lexer);

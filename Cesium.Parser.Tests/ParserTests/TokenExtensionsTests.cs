@@ -3,7 +3,7 @@ using Yoakke.SynKit.Lexer;
 
 namespace Cesium.Parser.Tests.ParserTests;
 
-public class TokenExtensionsTests
+public partial class TokenExtensionsTests
 {
     [Theory]
     [InlineData("\"\"", "")]

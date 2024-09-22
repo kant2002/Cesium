@@ -1,5 +1,6 @@
 using System.Reflection;
 using Cesium.TestFramework;
+[assembly: UsesVerify]
 
 namespace Cesium.Parser.Tests;
 

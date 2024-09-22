@@ -3,7 +3,7 @@ using Yoakke.SynKit.C.Syntax;
 
 namespace Cesium.Parser.Tests.LexerTests;
 
-public class IdentifierTests : LexerTestBase
+public partial class IdentifierTests : LexerTestBase
 {
     [Theory]
     [MemberData(nameof(InvalidIdentifiers))]
