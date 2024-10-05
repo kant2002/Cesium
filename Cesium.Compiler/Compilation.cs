@@ -6,6 +6,7 @@ using Cesium.Core;
 using Cesium.Parser;
 using Cesium.Preprocessor;
 using Mono.Cecil;
+using Microsoft.DiagnosticsHub;
 using Yoakke.Streams;
 using Yoakke.SynKit.C.Syntax;
 using Yoakke.SynKit.Lexer;
@@ -99,10 +100,20 @@ internal static class Compilation
 
     private static async Task GenerateCode(AssemblyContext context, string inputFilePath)
     {
-        var content = await Preprocess(inputFilePath, context.CompilationOptions);
+        string content;
+        using (var myRange = new UserMarkRange("Preprocessing " + inputFilePath))
+        {
+            content = await Preprocess(inputFilePath, context.CompilationOptions);
+        }
+
         var lexer = new CLexer(content);
         var parser = new CParser(lexer);
-        var translationUnitParseError = parser.ParseTranslationUnit();
+        Yoakke.SynKit.Parser.ParseResult<Ast.TranslationUnit> translationUnitParseError;
+        using (var myRange = new UserMarkRange("Parsing " + inputFilePath))
+        {
+            translationUnitParseError = parser.ParseTranslationUnit();
+        }
+
         if (translationUnitParseError.IsError)
         {
             throw translationUnitParseError.Error.Got switch
@@ -120,7 +131,11 @@ internal static class Compilation
             throw new ParseException($"Excessive output after the end of a translation unit {inputFilePath} at {lexer.Position}. Next token {firstUnprocessedToken.Text}.");
 
         var translationUnitName = Path.GetFileNameWithoutExtension(inputFilePath);
-        context.EmitTranslationUnit(translationUnitName, translationUnit);
+        using (var myRange = new UserMarkRange("Emit code for " + translationUnitName))
+        {
+            context.EmitTranslationUnit(translationUnitName, translationUnit);
+        }
+
     }
 
     private static void SaveAssembly(

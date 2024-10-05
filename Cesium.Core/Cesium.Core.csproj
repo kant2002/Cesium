@@ -7,8 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="JetBrains.Annotations"/>
-        <PackageReference Include="Yoakke.SynKit.Text"/>
+        <PackageReference Include="JetBrains.Annotations" />
+        <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.UserMarks" />
+        <PackageReference Include="Yoakke.SynKit.Text" />
     </ItemGroup>
 
 </Project>
