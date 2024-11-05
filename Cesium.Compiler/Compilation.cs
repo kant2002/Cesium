@@ -71,10 +71,10 @@ internal static class Compilation
             compilationOptions);
     }
 
-    private static Task<string> Preprocess(string compilationSourcePath, string compilationFileDirectory, TextReader reader, CompilationOptions compilationOptions)
+    private static CPreprocessor CreatePreprocessor(string compilationSourcePath, string compilationFileDirectory, TextReader reader, CompilationOptions compilationOptions)
     {
         var currentProcessPath = Path.GetDirectoryName(Environment.ProcessPath)
-                                 ?? throw new Exception("Cannot determine path to the compiler executable.");
+                                         ?? throw new Exception("Cannot determine path to the compiler executable.");
 
         var stdLibDirectory = Path.Combine(currentProcessPath, "stdlib");
         var includeDirectories = new[] { compilationFileDirectory }
@@ -101,7 +101,7 @@ internal static class Compilation
             includeContext,
             definesContext,
             new WarningProcessor());
-        return preprocessor.ProcessSource();
+        return preprocessor;
     }
 
     private static async Task<string> Preprocess(string inputFilePath, CompilationOptions compilationOptions)
@@ -111,7 +111,8 @@ internal static class Compilation
 
         using var reader = new StreamReader(inputFilePath, Encoding.UTF8);
 
-        var content = await Preprocess(compilationSourcePath, compilationFileDirectory, reader, compilationOptions);
+        var preprocessor = CreatePreprocessor(compilationSourcePath, compilationFileDirectory, reader, compilationOptions);
+        var content = await preprocessor.ProcessSource();
         return content;
     }
 
@@ -125,8 +126,14 @@ internal static class Compilation
 
     private static async Task<Ast.TranslationUnit> CreateAst(CompilationOptions compilationOptions, string inputFilePath)
     {
-        var content = await Preprocess(inputFilePath, compilationOptions);
-        var lexer = new CLexer(content);
+        var compilationFileDirectory = Path.GetDirectoryName(inputFilePath)!;
+        var compilationSourcePath = Path.GetFullPath(inputFilePath);
+
+        using var reader = new StreamReader(inputFilePath, Encoding.UTF8);
+
+        var preprocessor = CreatePreprocessor(compilationSourcePath, compilationFileDirectory, reader, compilationOptions);
+        //var content = await preprocessor.ProcessSource();
+        var lexer = new CLexer(preprocessor.ProcessCharStream());
         var parser = new CParser(lexer);
         var translationUnitParseError = parser.ParseTranslationUnit();
         if (translationUnitParseError.IsError)

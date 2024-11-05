@@ -30,6 +30,11 @@ public record CPreprocessor(
         return buffer.ToString();
     }
 
+    public ICharStream ProcessCharStream()
+    {
+        return new PreprocessorCharStream<CPreprocessorTokenType>(GetPreprocessingResults().ToBlockingEnumerable());
+    }
+
     private async IAsyncEnumerable<IToken<CPreprocessorTokenType>> GetPreprocessingResults()
     {
         var file = ParsePreprocessingFile();
