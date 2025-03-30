@@ -59,22 +59,19 @@ public partial class CParser
     // 6.5 Expressions
 
     [Rule("postfix_expression: primary_expression")] // 6.5.2 Postfix operators
-    [Rule("unary_expression: postfix_expression")] // 6.5.3 Unary operators
-    [Rule("cast_expression: unary_expression")] // 6.5.4 Cast operators
-    [Rule("multiplicative_expression: cast_expression")] // 6.5.5 Multiplicative operators
-    [Rule("additive_expression: multiplicative_expression")] // 6.5.6 Additive operators
-    [Rule("shift_expression: additive_expression")] // 6.5.7 Bitwise shift operators
-    [Rule("relational_expression: shift_expression")] // 6.5.8 Relational operators
-    [Rule("equality_expression: relational_expression")] // 6.5.9 Equality operators
-    [Rule("AND_expression: equality_expression")] // 6.5.10 Bitwise AND operator
-    [Rule("exclusive_OR_expression: AND_expression")] // 6.5.11 Bitwise exclusive OR operator
-    [Rule("inclusive_OR_expression: exclusive_OR_expression")] // 6.5.12 Bitwise inclusive OR operator
-    [Rule("logical_AND_expression: inclusive_OR_expression")] // 6.5.13 Logical AND operator
-    [Rule("logical_OR_expression: logical_AND_expression")] // 6.5.14 Logical OR operator
-    [Rule("conditional_expression: logical_OR_expression")] // 6.5.15 Conditional operator
+    //[Rule("unary_expression: postfix_expression")] // 6.5.3 Unary operators
+    //[Rule("cast_expression: unary_expression")] // 6.5.4 Cast operators
+    //[Rule("multiplicative_expression: cast_expression")] // 6.5.5 Multiplicative operators
+    //[Rule("additive_expression: multiplicative_expression")] // 6.5.6 Additive operators
+    //[Rule("shift_expression: additive_expression")] // 6.5.7 Bitwise shift operators
+    //[Rule("relational_expression: shift_expression")] // 6.5.8 Relational operators
+    //[Rule("equality_expression: relational_expression")] // 6.5.9 Equality operators
+    //[Rule("AND_expression: equality_expression")] // 6.5.10 Bitwise AND operator
+    [Rule("binary_expression: cast_expression")] // 6.5.15 Conditional operator
+    [Rule("conditional_expression: binary_expression_xxx")] // 6.5.15 Conditional operator
     [Rule("assignment_expression: conditional_expression")] // 6.5.16 Assignment operators
     [Rule("expression: assignment_expression")] // 6.5.17 Comma operator
-    [Rule("expression: constant_expression")] // 6.6 Constant expressions
+    //[Rule("expression: constant_expression")] // 6.6 Constant expressions
     private static Expression CreateExpressionIdentity(Expression expression) => expression;
 
     [Rule("constant_expression: conditional_expression")] // 6.6 Constant expressions
@@ -201,71 +198,200 @@ public partial class CParser
     private static Expression MakeTypeSpecifierSizeOfOperator(ICToken _, ICToken __, TypeName typeName, ICToken ___) =>
         new TypeNameSizeOfOperatorExpression(typeName);
 
+    [Rule("unary_expression: postfix_expression")] // 6.5.3 Unary operators
+    private static Expression CreateUnaryExpressionIdentity(Expression expression) => expression;
+
     // 6.5.4 Cast operators
     [Rule("cast_expression: '(' type_name ')' cast_expression")]
     private static Expression MakeCastExpression(ICToken _, TypeName typeName, ICToken __, Expression target) =>
         new CastExpression(typeName, target);
 
-    // 6.5.5 Multiplicative operators
-    [Rule("multiplicative_expression: multiplicative_expression '*' cast_expression")]
-    [Rule("multiplicative_expression: multiplicative_expression '/' cast_expression")]
-    [Rule("multiplicative_expression: multiplicative_expression '%' cast_expression")]
-    private static Expression MakeMultiplicativeExpression(Expression a, ICToken @operator, Expression b) =>
-        new ArithmeticBinaryOperatorExpression(a, @operator.Text, b);
+    [Rule("cast_expression: unary_expression")] // 6.5.4 Cast operators
+    private static Expression CreateCastExpressionIdentity(Expression expression) => expression;
 
-    // 6.5.6 Additive operators
-    [Rule("additive_expression: additive_expression '+' multiplicative_expression")]
-    [Rule("additive_expression: additive_expression '-' multiplicative_expression")]
-    private static Expression MakeAdditiveExpression(Expression a, ICToken @operator, Expression b) =>
-        new ArithmeticBinaryOperatorExpression(a, @operator.Text, b);
+    [Left("*", "/", "%")] // 6.5.5 Multiplicative operators
+    [Left("+", "-")] // 6.5.6 Additive operators
+    [Left("<<", ">>")] // 6.5.7 Bitwise shift operators
+    [Left(">", ">=", "<", "<=")] // 6.5.8 Relational operators
+    [Left("==", "!=")] // 6.5.9 Equality operators
+    [Left("&")] // 6.5.10 Bitwise AND operator
+    [Left("^")] // 6.5.11 Bitwise exclusive OR operator
+    [Left("|")] // 6.5.12 Bitwise inclusive OR operator
+    [Left("&&")] // 6.5.13 Logical AND operator
+    [Left("||")] // 6.5.14 Logical OR operator
+    [Rule("binary_expression")]
+    private static Expression MakeLogicalOrExpression(Expression left, IToken op, Expression right) => op.Text switch
+    {
+        // 6.5.5 Multiplicative operators
+        "*" => new ArithmeticBinaryOperatorExpression(left, op.Text, right),
+        "/" => new ArithmeticBinaryOperatorExpression(left, op.Text, right),
+        "%" => new ArithmeticBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.6 Additive operators
+        "+" => new ArithmeticBinaryOperatorExpression(left, op.Text, right),
+        "-" => new ArithmeticBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.7 Bitwise shift operators
+        ">>" => new BitwiseBinaryOperatorExpression(left, op.Text, right),
+        "<<" => new BitwiseBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.8 Relational operators
+        ">" => new ComparisonBinaryOperatorExpression(left, op.Text, right),
+        ">=" => new ComparisonBinaryOperatorExpression(left, op.Text, right),
+        "<" => new ComparisonBinaryOperatorExpression(left, op.Text, right),
+        "<=" => new ComparisonBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.9 Equality operators
+        "==" => new ComparisonBinaryOperatorExpression(left, op.Text, right),
+        "!=" => new ComparisonBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.10 Bitwise AND operator
+        "&" => new BitwiseBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.11 Bitwise exclusive OR operator
+        "^" => new BitwiseBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.12 Bitwise inclusive OR operator
+        "|" => new BitwiseBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.13 Logical AND operator
+        "&&" => new LogicalBinaryOperatorExpression(left, op.Text, right),
+        // 6.5.14 Logical OR operator
+        "||" => new LogicalBinaryOperatorExpression(left, op.Text, right),
+        _ => throw new InvalidOperationException(),
+    };
 
-    // 6.5.7 Bitwise shift operators
-    [Rule("shift_expression: shift_expression '<<' additive_expression")]
-    [Rule("shift_expression: shift_expression '>>' additive_expression")]
-    private static Expression MakeShiftExpression(Expression a, ICToken @operator, Expression b) =>
-        new BitwiseBinaryOperatorExpression(a, @operator.Text, b);
 
-    // 6.5.8 Relational operators
-    [Rule("relational_expression: relational_expression '<' additive_expression")]
-    [Rule("relational_expression: relational_expression '>' additive_expression")]
-    [Rule("relational_expression: relational_expression '<=' additive_expression")]
-    [Rule("relational_expression: relational_expression '>=' additive_expression")]
-    private static Expression MakeRelationalExpression(Expression a, ICToken @operator, Expression b) =>
-        new ComparisonBinaryOperatorExpression(a, @operator.Text, b);
+    private (int, int) getXXXExpressionPrecedence(Yoakke.SynKit.Lexer.IToken<CTokenType> token)
+    {
+        return token.Text switch
+        {
+            // 6.5.14 Logical OR operator
+            "||" => (1, 1),
+            // 6.5.13 Logical AND operator
+            "&&" => (2, 1),
+            // 6.5.12 Bitwise inclusive OR operator
+            "|" => (3, 1),
+            // 6.5.11 Bitwise exclusive OR operator
+            "^" => (4, 1),
+            // 6.5.10 Bitwise AND operator
+            "&" => (5, 1),
+            // 6.5.9 Equality operators
+            "!=" => (6, 1),
+            "==" => (6, 1),
+            // 6.5.8 Relational operators
+            ">" => (7, 1),
+            ">=" => (7, 1),
+            "<=" => (7, 1),
+            "<" => (7, 1),
+            // 6.5.7 Bitwise shift operators
+            ">>" => (8, 1),
+            "<<" => (8, 1),
+            // 6.5.6 Additive operators
+            "+" => (9, 1),
+            "-" => (9, 1),
+            // 6.5.5 Multiplicative operators
+            "*" => (10, 1),
+            "/" => (10, 1),
+            "%" => (10, 1),
+            _ => (-1, 0),
+        };
+    }
 
-    // 6.5.9 Equality operators
-    [Rule("equality_expression: equality_expression '==' additive_expression")]
-    [Rule("equality_expression: equality_expression '!=' additive_expression")]
-    private static Expression MakeEqualityExpression(Expression a, ICToken @operator, Expression b) =>
-        new ComparisonBinaryOperatorExpression(a, @operator.Text, b);
+    private ParseResult<Expression> parseXXXExpressionPrecedenceAware(int offset, int minPrecedence)
+    {
+        ParseResult<Expression> a24;
+        ParseResult<Expression> a25;
+        a25 = parseBinaryExpressionAtomic(offset);
+        if (a25.IsError && (!this.TokenStream.TryLookAhead(offset, out var a26) || ReferenceEquals(a26, a25.Error.Got)))
+        {
+            a25 = ParseResult.Error("expression_atomic", a25.Error.Got, a25.Error.Position, "expression");
+        }
 
-    // 6.5.10 Bitwise AND operator
-    [Rule("AND_expression: AND_expression '&' equality_expression")]
-    private static Expression MakeBitwiseAndExpression(Expression a, ICToken @operator, Expression b) =>
-        new BitwiseBinaryOperatorExpression(a, @operator.Text, b);
+        if (a25.IsOk)
+        {
+            var placeholder = a25;
+            a24 = a25.Ok;
+            while (true)
+            {
+                ParseResult<Expression> a27;
+                ParseResult<Expression> a28;
+                ParseResult<(Expression, Yoakke.SynKit.Lexer.IToken<CTokenType>, Expression)> a29;
+                ParseResult<Expression> a30;
+                a30 = placeholder;
+                if (a30.IsOk)
+                {
+                    ParseResult<Yoakke.SynKit.Lexer.IToken<CTokenType>> a31;
+                    (int, int) precedence = (-1, 0);
+                    if (this.TokenStream.TryLookAhead(a30.Ok.Offset, out var a32) && (precedence = getXXXExpressionPrecedence(a32)).Item1 >= minPrecedence)
+                    {
+                        a31 = ParseResult.Ok(a32, a30.Ok.Offset + 1);
+                    }
+                    else
+                    {
+                        a31 = ParseResult.Error(a32!.Text, a32, a32!.Range.Start, "expression");
+                    }
 
-    // 6.5.11 Bitwise exclusive OR operator
-    [Rule("exclusive_OR_expression: exclusive_OR_expression '^' AND_expression")]
-    private static Expression MakeBitwiseXorExpression(Expression a, ICToken @operator, Expression b) =>
-        new BitwiseBinaryOperatorExpression(a, @operator.Text, b);
+                    a31 = a31 | a30.Ok.FurthestError;
+                    if (a31.IsOk)
+                    {
+                        ParseResult<Expression> a33;
+                        a33 = parseXXXExpressionPrecedenceAware(a31.Ok.Offset, precedence.Item1 + precedence.Item2);
+                        if (a33.IsError && (!this.TokenStream.TryLookAhead(a31.Ok.Offset, out var a34) || ReferenceEquals(a34, a33.Error.Got)))
+                        {
+                            a33 = ParseResult.Error("expression_level1", a33.Error.Got, a33.Error.Position, "expression");
+                        }
 
-    // 6.5.12 Bitwise inclusive OR operator
-    [Rule("inclusive_OR_expression: inclusive_OR_expression '|' exclusive_OR_expression")]
-    private static Expression MakeBitwiseOrExpression(Expression a, ICToken @operator, Expression b) =>
-        new BitwiseBinaryOperatorExpression(a, @operator.Text, b);
+                        a33 = a33 | a31.Ok.FurthestError;
+                        if (a33.IsOk)
+                        {
+                            a29 = ParseResult.Ok((a30.Ok.Value, a31.Ok.Value, a33.Ok.Value), a33.Ok.Offset, a33.Ok.FurthestError);
+                        }
+                        else
+                        {
+                            a29 = a33.Error;
+                        }
+                    }
+                    else
+                    {
+                        a29 = a31.Error;
+                    }
+                }
+                else
+                {
+                    a29 = a30.Error;
+                }
 
-    // 6.5.13 Logical AND operator
-    [Rule("logical_AND_expression: logical_AND_expression '&&' inclusive_OR_expression")]
-    private static Expression MakeLogicalAndExpression(Expression a, ICToken @operator, Expression b) =>
-        new LogicalBinaryOperatorExpression(a, @operator.Text, b);
+                if (a29.IsOk)
+                {
+                    var (a35, a36, a37) = a29.Ok.Value;
+                    a28 = ParseResult.Ok(MakeLogicalOrExpression(a35, a36, a37), a29.Ok.Offset, a29.Ok.FurthestError);
+                }
+                else
+                {
+                    a28 = a29.Error;
+                }
 
-    // 6.5.14 Logical OR operator
-    [Rule("logical_OR_expression: logical_OR_expression '||' logical_AND_expression")]
-    private static Expression MakeLogicalOrExpression(Expression a, ICToken @operator, Expression b) =>
-        new LogicalBinaryOperatorExpression(a, @operator.Text, b);
+                a27 = a28;
+                if (a27.IsOk)
+                {
+                    placeholder = a27;
+                    a24 = a27.Ok;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        else
+        {
+            a24 = a25.Error;
+        }
+
+        return a24;
+    }
+
+    [CustomParser("binary_expression_xxx")]
+    private ParseResult<Expression> parseXXXExpression(int offset)
+    {
+        return parseXXXExpressionPrecedenceAware(offset, 0);
+    }
 
     // 6.5.15 Conditional operator
-    [Rule("conditional_expression: logical_OR_expression '?' expression ':' conditional_expression")]
+    [Rule("conditional_expression: binary_expression_xxx '?' expression ':' conditional_expression")]
     private static Expression MakeConditionalExpression(Expression a, ICToken _, Expression b, ICToken __, Expression c) =>
         new ConditionalExpression(a, b, c);
 
